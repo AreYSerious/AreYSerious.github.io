@@ -27,6 +27,13 @@ if (!$exists) {
     echo "Die Spiel-ID existiert nicht. Bitte überprüfen Sie die ID. Sie werden zurückgeleitet.";
     header("Refresh: 2; url=geheim.php");
 }
+//Ziehstapel aus Datenbank abfragen
+$statement = $pdo->prepare("SELECT Ziehstapel FROM Spiel WHERE Spiel_ID = :spiel_id");
+$statement->execute(['spiel_id' => $Spiel_ID]);
+$ziehstapel = $statement->fetchColumn();
+
+//Ziehstapel in array umwandeln
+$ziehstapel = explode(',', $ziehstapel);
 
 $s1 = [];
 $s2 = [];
@@ -39,7 +46,7 @@ $s4 = [];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Document</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style/style_game.css">
 </head>
 <body>
 <div class="grid">
@@ -59,11 +66,11 @@ $s4 = [];
     <div class="cell n0">0</div>
 
     <div class="cell n6">
-        6
+        <img class="dropzone" src="cards/card_skipBo.png" id="get" draggable="false" alt="hello" height="90" width="90">
     </div>
 
     <div class="cell n5">
-        <img class="dropzone" id="drag1" draggable="true" alt="hello" height="90" width="90" src=<?php
+        <img class="dropzone" id="drop1" draggable="false" alt="hello" height="90" width="90" src=<?php
         $LastEntry = end($s1);
         if (empty($s1)) {
             echo '"cards/card_0.png"';
@@ -73,14 +80,34 @@ $s4 = [];
         ?>>
     </div>
     <div class="cell n5">
-        5
+        <img class="dropzone" id="drop2" draggable="false" alt="hello" height="90" width="90" src=<?php
+        $LastEntry = end($s2);
+        if (empty($s1)) {
+            echo '"cards/card_0.png"';
+        }else {
+            echo '"cards/card_' . $LastEntry . '.png"';
+        }
+        ?>>
     </div>
     <div class="cell n5">
-        
-        5
+        <img class="dropzone" id="drop3" draggable="false" alt="hello" height="90" width="90" src=<?php
+        $LastEntry = end($s3);
+        if (empty($s1)) {
+            echo '"cards/card_0.png"';
+        }else {
+            echo '"cards/card_' . $LastEntry . '.png"';
+        }
+        ?>>
     </div>
     <div class="cell n5">
-        5
+        <img class="dropzone" id="drop4" draggable="false" alt="hello" height="90" width="90" src=<?php
+        $LastEntry = end($s4);
+        if (empty($s1)) {
+            echo '"cards/card_0.png"';
+        }else {
+            echo '"cards/card_' . $LastEntry . '.png"';
+        }
+        ?>>
     </div>
 
     <div class="cell n0">0</div>

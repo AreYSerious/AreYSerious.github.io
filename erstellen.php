@@ -23,6 +23,29 @@ for ($i = 0; $i < 100; $i++) {
     $randomArray[] = $originalArray[array_rand($originalArray)];
 }
 
+$H_1 = [];
+for ($i = 0; $i < 5; $i++) {
+    $H_1[] = $originalArray[array_rand($originalArray)];
+}
+$H_2 = [];
+for ($i = 0; $i < 5; $i++) {
+    $H_2[] = $originalArray[array_rand($originalArray)];
+}
+if ($Spieler >= 3) {
+    $H_3 = [];
+    for ($i = 0; $i < 5; $i++) {
+        $H_3[] = $originalArray[array_rand($originalArray)];
+    }
+    if ($Spieler == 4) {
+        // Wenn 4 Spieler, dann auch H_4
+        $H_4 = [];
+        for ($i = 0; $i < 5; $i++) {
+            $H_4[] = $originalArray[array_rand($originalArray)];
+        }
+    }
+}
+
+
 
 $arrays = [];
 for ($i = 1; $i <= $Spieler; $i++) {
@@ -44,6 +67,7 @@ $result = $statement->execute(array(
     'stapel' => $Stapel,
     'ziehstapel' => $zieh_stapel
 ));
+echo "<br>";
 echo "Spiel wurde erstellt<br>";
 echo "Spiel ID: ".$Spiel_ID."<br>";
 

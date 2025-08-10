@@ -19,7 +19,7 @@ echo "Spieler-ID: " . $Spieler_ID;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style/style_geheim.css">
     <title>Document</title>
 </head>
 <body>
