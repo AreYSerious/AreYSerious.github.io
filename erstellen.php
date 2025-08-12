@@ -47,11 +47,11 @@ if ($Spieler >= 3) {
 
 
 
+
 $arrays = [];
 for ($i = 1; $i <= $Spieler; $i++) {
     $arrays["s$i"] = []; // Erstellt Arrays mit den Namen s1, s2, s3, s4
 }
-
 
 
 

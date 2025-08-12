@@ -47,7 +47,7 @@ echo "Spieler-ID: " . $Spieler_ID;
     <hr>
     <!-- Spiel Erstellen -->
     <div class="erstellen">
-        <form action="erstellen.php" method="post">
+        <form action="cards/erstellen.php" method="post">
             <fieldset>
                 <label for="erstellen">Spiel Erstellen:</label>
                 <br>
