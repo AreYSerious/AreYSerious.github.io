@@ -17,7 +17,7 @@ if ($Spiel_ID == "") {
     header("Refresh: spiel.php; url=geheim.php");
 }
 
-function Spiel_beenden()
+function Spiel_beenden($ablagestapel)
 {
     global $Spiel_ID, $pdo;
     if (sizeof($ablagestapel) > 0) {
