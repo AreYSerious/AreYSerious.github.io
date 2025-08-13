@@ -15,7 +15,7 @@ if ($Spiel_ID == "") {
         alert("Keine Spiel-ID vorhanden");
     </script>';
 
-    header("Refresh: 1; url=geheim.php");
+    header("Refresh: spiel.php; url=geheim.php");
 }
 
 $pdo = new PDO('mysql:host=localhost;dbname=skip-bo', 'root', '1234');
