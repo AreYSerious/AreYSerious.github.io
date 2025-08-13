@@ -107,7 +107,7 @@ echo "Spiel ID: " . $Spiel_ID . "<br>";
 </head>
 <body>
 <hr>
-<form action="cards/spiel.php" method="post">
+<form action="spiel.php" method="post">
     <label for="beitreten">Spiel Beitreten:</label>
     <br>
     <br>
