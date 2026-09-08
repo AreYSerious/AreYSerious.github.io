@@ -1,0 +1,1201 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>SQUAD RUSH — Fake Ad Lane Runner</title>
+<style>
+  :root{
+    --bg:#0d1018; --ink:#eef2ff; --dim:#9aa4c0;
+    --com:#8b95ad; --rare:#3aa0ff; --epic:#b45cff; --leg:#ffb020;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:#05070c;overflow:hidden;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#eef2ff;
+    user-select:none;-webkit-user-select:none;touch-action:none}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+  canvas{display:block;touch-action:none}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;
+    align-items:center;justify-content:flex-start;padding:18px 14px 20px;
+    background:linear-gradient(180deg,rgba(6,9,16,.94),rgba(6,9,16,.98));
+    overflow-y:auto;overscroll-behavior:contain;z-index:5}
+  .screen.on{display:flex}
+  h1{font-size:26px;margin:6px 0 2px;letter-spacing:2px}
+  h2{font-size:17px;margin:14px 0 6px;letter-spacing:1px;color:#cfd8f5;
+     align-self:flex-start;text-transform:uppercase}
+  .sub{color:#9aa4c0;font-size:13px;margin:0 0 10px;text-align:center}
+  .btn{background:linear-gradient(180deg,#3d7bff,#2354d6);border:0;color:#fff;
+    font-size:17px;font-weight:800;letter-spacing:1px;padding:14px 26px;border-radius:14px;
+    box-shadow:0 6px 0 #17307c,0 10px 20px rgba(0,0,0,.5);cursor:pointer;margin:8px 4px}
+  .btn:active{transform:translateY(3px);box-shadow:0 3px 0 #17307c}
+  .btn.ghost{background:linear-gradient(180deg,#2a3350,#1a2135);box-shadow:0 6px 0 #10141f}
+  .btn.small{font-size:13px;padding:9px 14px;border-radius:10px}
+  .row{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;width:100%}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(94px,1fr));gap:8px;width:100%}
+  .card{position:relative;border-radius:12px;padding:8px 6px 6px;background:#161c2c;
+    border:2px solid #2a3350;text-align:center;cursor:pointer;transition:transform .08s}
+  .card:active{transform:scale(.96)}
+  .card.eq{border-color:#4ade80;box-shadow:0 0 0 2px rgba(74,222,128,.25)}
+  .card .ic{font-size:22px;line-height:1.1}
+  .card .nm{font-size:11px;font-weight:700;margin-top:2px;line-height:1.15}
+  .card .ds{font-size:9px;color:#9aa4c0;margin-top:2px;line-height:1.2;min-height:22px}
+  .card .lv{position:absolute;top:-7px;left:-6px;background:#0f1420;border:1px solid #39435f;
+    border-radius:8px;font-size:9px;padding:1px 5px;font-weight:800}
+  .card .ct{position:absolute;top:-7px;right:-6px;background:#0f1420;border:1px solid #39435f;
+    border-radius:8px;font-size:9px;padding:1px 5px;font-weight:800}
+  .card.C{border-color:#5b6478} .card.R{border-color:#3aa0ff}
+  .card.E{border-color:#b45cff} .card.L{border-color:#ffb020}
+  .card.C .ic{color:#c3cbdd} .card.R .ic{color:#7cc4ff}
+  .card.E .ic{color:#d3a4ff} .card.L .ic{color:#ffd070}
+  .merge{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
+    background:#ffb020;color:#1a1200;font-size:9px;font-weight:900;border-radius:7px;
+    padding:1px 6px;border:0;cursor:pointer}
+  .bar{width:100%;max-width:420px;height:12px;border-radius:8px;background:#1a2133;overflow:hidden;margin:4px 0 2px}
+  .bar > i{display:block;height:100%;background:linear-gradient(90deg,#3aa0ff,#7cf0ff)}
+  .pill{background:#161c2c;border:1px solid #2a3350;border-radius:20px;padding:6px 12px;
+    font-size:12px;font-weight:700;margin:3px}
+  .inner{width:100%;max-width:460px;display:flex;flex-direction:column;align-items:center}
+  #resPack{width:100%}
+  .hint{font-size:11px;color:#6e7793;margin-top:8px;text-align:center;line-height:1.5}
+  .reward{display:flex;gap:8px;justify-content:center;margin:10px 0;flex-wrap:wrap}
+  .big{font-size:34px;font-weight:900;letter-spacing:2px;margin:6px 0}
+  .gain{color:#7cf0ff;font-weight:800;font-size:16px}
+  .tabs{display:flex;gap:6px;margin:6px 0 4px;flex-wrap:wrap;justify-content:center}
+  .tab{background:#161c2c;border:1px solid #2a3350;border-radius:10px;padding:6px 11px;
+    font-size:12px;font-weight:700;cursor:pointer;color:#9aa4c0}
+  .tab.on{background:#233257;color:#fff;border-color:#3d7bff}
+</style>
+<div id="wrap"><canvas id="cv"></canvas>
+
+  <div class="screen" id="scMeta"><div class="inner">
+    <h1>SQUAD RUSH</h1>
+    <p class="sub" id="metaSub">Bereit für den nächsten Einsatz?</p>
+    <div class="row"><span class="pill" id="pAcc"></span><span class="pill" id="pLvl"></span><span class="pill" id="pSol"></span></div>
+    <div class="bar"><i id="xpBar"></i></div>
+    <div class="sub" id="xpTxt" style="margin:0 0 8px"></div>
+    <button class="btn" id="btnPlay">LEVEL STARTEN</button>
+    <h2>Ausrüstung <span style="color:#6e7793;font-weight:400">(max 5)</span></h2>
+    <div class="grid" id="eqGrid"></div>
+    <h2>Sammlung</h2>
+    <div class="tabs" id="tabs"></div>
+    <div class="grid" id="colGrid"></div>
+    <p class="hint">Tippe eine Karte zum Ausrüsten/Ablegen · „3→⭐“ verschmilzt 3 gleiche Karten<br>
+      Steuerung: Maus/Touch ziehen oder ← →</p>
+    <button class="btn ghost small" id="btnWipe">Fortschritt löschen</button>
+  </div></div>
+
+  <div class="screen" id="scResult"><div class="inner">
+    <h1 id="resTitle">LEVEL GESCHAFFT</h1>
+    <p class="big" id="resLvl"></p>
+    <div class="row"><span class="pill" id="resKills"></span><span class="pill" id="resBar"></span><span class="pill" id="resSquad"></span></div>
+    <p class="gain" id="resXp"></p>
+    <div class="bar"><i id="resXpBar"></i></div>
+    <p class="sub" id="resXpTxt"></p>
+    <div id="resPack"></div>
+    <button class="btn" id="btnNext">WEITER</button>
+  </div></div>
+
+  <div class="screen" id="scDead"><div class="inner">
+    <h1 style="color:#ff6b6b">SQUAD AUSGELÖSCHT</h1>
+    <p class="sub">Deine Karten und dein Account-Level bleiben erhalten.</p>
+    <p class="big" id="deadLvl"></p>
+    <p class="gain" id="deadXp"></p>
+    <button class="btn" id="btnRetry">NOCHMAL</button>
+    <button class="btn ghost" id="btnToMeta">ZUM LAGER</button>
+  </div></div>
+</div>
+<script>
+"use strict";
+/* =======================================================================
+   ============================  BALANCING  ==============================
+   Alle Stellschrauben an einem Ort.
+   ===================================================================== */
+const CFG = {
+  // --- Squad / Bewegung ---
+  START_SOLDIERS   : 1,
+  SOLDIER_HP       : 1,        // Treffer, die ein Soldat aushält
+  RUN_SPEED        : 200,      // px/s Auto-Scroll nach vorne
+  MOVE_SPEED       : 520,      // px/s horizontale Steuerung (Tastatur)
+  MOVE_LERP        : 0.22,     // Glättung der Spielerbewegung
+  SOLDIER_SPACING  : 13,       // Formationsdichte
+  MAX_VISIBLE      : 60,       // danach nur noch Zähler
+  MAX_SOLDIERS     : 9999,
+
+  // --- Waffen ---
+  BASE_DAMAGE      : 10,
+  FIRE_RATE        : 3,        // Salven pro Sekunde
+  BULLET_SPEED     : 1150,
+  MAX_STREAMS      : 8,        // sichtbare Schützen pro Salve (DPS bleibt exakt)
+  WEAPON_BUFF_TIME : 20,       // Sekunden für "Waffen-Upgrade"-Gate
+  WEAPON_BUFF_DMG  : 2.5,
+  WEAPON_BUFF_RATE : 1.5,
+  EXPLOSION_RADIUS : 52,
+
+  // --- Gegner ---
+  ENEMY_HP         : { runner: 20, tank: 120, splitter: 40, shard: 16 },
+  ENEMY_SPEED      : { runner: 190, tank: 55, splitter: 110, shard: 230 },
+  ENEMY_COST       : { runner: 1, tank: 4, splitter: 2, shard: 1 }, // Soldaten pro Kontakt
+  ENEMY_HP_PER_LVL : 0.16,     // +16% HP pro Level
+  ENEMY_TRACK      : 40,       // max. seitliches Nachziehen aus der eigenen Spur
+
+  // --- Barrieren (Risiko-Spur) ---
+  BARRIER_HP       : 300,
+  BARRIER_HP_LVL   : 80,       // pro Level
+  BARRIER_DRAIN    : 14,       // Soldaten/s beim Anprall
+  BARRIER_CONTACT  : 40,       // Schaden/s den der Anprall an der Barriere macht
+
+  // --- Boss ---
+  BOSS_EVERY       : 5,
+  BOSS_HP          : 1500,
+  BOSS_HP_FACTOR   : 0.45,     // BOSS_HP * (1 + FACTOR * (level-1))
+  BOSS_SHOT_COST   : 2,        // Soldaten pro Boss-Geschoss
+  BOSS_SWING       : 0.30,     // seitliche Pendelbreite des Bosses (Anteil der Breite)
+
+  // --- XP / Progression ---
+  XP_PER_KILL      : 5,
+  XP_PER_BARRIER   : 25,
+  XP_PER_BOSS      : 150,
+  XP_LEVEL_CLEAR   : 60,
+  XP_SQUAD_BONUS   : 0.5,      // XP pro überlebendem Soldat ...
+  XP_SQUAD_CAP     : 200,      // ... gedeckelt
+  XP_PER_LEVEL     : 100,      // 100 * 1.25^n
+  XP_LEVEL_GROWTH  : 1.25,
+
+  // --- Gate-Werte (Spur A sicher / Spur B Risiko) ---
+  GATE_ADD_S       : 2,        // kleines Gate:  +2 (+1 alle 3 Level)
+  GATE_ADD_M       : 5,        // mittleres Gate:+5 (+1 pro Level)
+  GATE_ADD_L       : 20,       // Risiko-Gate:   +20 (+3 pro Level)
+  GATE_MUL_S       : 2,        // sicheres Multiplikator-Gate
+  GATE_MUL_L       : 5,        // Risiko-Multiplikator-Gate
+
+  // --- Level-Aufbau ---
+  LEVEL_LENGTH     : 3600,
+  LEVEL_LENGTH_LVL : 420,      // pro Level länger
+  SEGMENT          : 640,
+  MAX_EQUIPPED     : 5,
+
+  // --- Game Feel ---
+  SHAKE_HIT        : 3,
+  SHAKE_BOSS       : 9,
+  HITSTOP_BREAK    : 0.09,
+  CAM_PARALLAX     : 0.07
+};
+
+/* ============================ VIEWPORT ============================== */
+const W = 540;
+// Logische Höhe folgt dem Seitenverhältnis des Geräts -> keine schwarzen Balken auf Handys
+const H = Math.round(Math.min(1240, Math.max(900,
+            W * ((window.innerHeight||960) / (window.innerWidth||540)))));
+const LANE = [W*0.185, W*0.5, W*0.815]; // A(sicher) | Mitte(Gegner) | B(Risiko)
+const PLAY_Y = H*0.80;                  // Bildschirmzeile der Squad
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d', {alpha:false});
+let view = {s:1, ox:0, oy:0, cw:W, ch:H};
+function resize(){
+  const dpr = Math.min(window.devicePixelRatio||1, 2);
+  const aw = window.innerWidth, ah = window.innerHeight;
+  const s = Math.min(aw/W, ah/H);
+  view.cw = Math.round(W*s); view.ch = Math.round(H*s); view.s = s;
+  cv.style.width = view.cw+'px'; cv.style.height = view.ch+'px';
+  cv.width = Math.round(view.cw*dpr); cv.height = Math.round(view.ch*dpr);
+  ctx.setTransform(dpr*s,0,0,dpr*s,0,0);
+  const r = cv.getBoundingClientRect(); view.ox = r.left; view.oy = r.top;
+}
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', ()=>setTimeout(resize,120));
+
+/* ============================== UTILS =============================== */
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const ri =(a,b)=>Math.floor(rnd(a,b+1));
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function fmt(n){ return n>=10000 ? (n/1000).toFixed(1)+'k' : ''+n; }
+
+/* =============================== KARTEN ============================== */
+const RAR = {
+  C:{k:'C', nm:'Common',    w:60, col:'#8b95ad'},
+  R:{k:'R', nm:'Rare',      w:26, col:'#3aa0ff'},
+  E:{k:'E', nm:'Epic',      w:11, col:'#b45cff'},
+  L:{k:'L', nm:'Legendary', w:3,  col:'#ffb020'}
+};
+const MAX_CARD_LVL = 4;
+
+const CARDS = [
+  // --- Soldaten ---
+  {id:'recruit', nm:'Rekruten',   ic:'👥', cat:'Soldaten', r:'C',
+   ds:l=>`Start +${l} Soldat${l>1?'en':''}`,          ap:(e,l)=>e.startSoldiers += l},
+  {id:'vest',    nm:'Panzerung',  ic:'🛡️', cat:'Soldaten', r:'R',
+   ds:l=>`Soldaten-HP ${1+l}`,                        ap:(e,l)=>e.soldierHp += l},
+  {id:'boots',   nm:'Stiefel',    ic:'👟', cat:'Soldaten', r:'C',
+   ds:l=>`Tempo +${l*12}%`,                           ap:(e,l)=>e.moveMult += l*0.12},
+  // --- Waffen ---
+  {id:'power',   nm:'Kaliber',    ic:'🔺', cat:'Waffen',   r:'C',
+   ds:l=>`Schaden +${l*15}%`,                         ap:(e,l)=>e.dmgMult += l*0.15},
+  {id:'rapid',   nm:'Schnellfeuer',ic:'⚡',cat:'Waffen',   r:'R',
+   ds:l=>`Feuerrate +${l*12}%`,                       ap:(e,l)=>e.rateMult += l*0.12},
+  {id:'pierce',  nm:'Durchschuss',ic:'➶', cat:'Waffen',   r:'E',
+   ds:l=>`durchdringt ${l} Ziele`,                    ap:(e,l)=>e.pierce += l},
+  {id:'shot',    nm:'Schrot',     ic:'🔱', cat:'Waffen',   r:'E',
+   ds:l=>l>1?`3 Projektile +${(l-1)*10}%`:'3 Projektile',                ap:(e,l)=>{e.shotgun=true; e.dmgMult += (l-1)*0.10}},
+  {id:'boom',    nm:'Sprengkopf', ic:'💥', cat:'Waffen',   r:'L',
+   ds:l=>`Explosion ${l*35}%`,                        ap:(e,l)=>e.explode += l*0.35},
+  // --- Utility ---
+  {id:'gates',   nm:'Gate-Boost', ic:'🚪', cat:'Utility',  r:'R',
+   ds:l=>`Gate-Werte +${l*20}%`,                      ap:(e,l)=>e.gateMult += l*0.20},
+  {id:'demo',    nm:'Abriss',     ic:'🧨', cat:'Utility',  r:'C',
+   ds:l=>`Barrieren +${l*25}%`,                       ap:(e,l)=>e.barrierMult += l*0.25},
+  {id:'magnet',  nm:'Magnet',     ic:'🧲', cat:'Utility',  r:'C',
+   ds:l=>`Gate-Reichweite +${l*18}%`,                 ap:(e,l)=>e.magnet += l*0.18}
+];
+const CARD_BY_ID = {}; CARDS.forEach(c=>CARD_BY_ID[c.id]=c);
+
+function rollRarity(){
+  const tot = Object.values(RAR).reduce((s,r)=>s+r.w,0);
+  let x = Math.random()*tot;
+  for(const k in RAR){ x -= RAR[k].w; if(x<=0) return k; }
+  return 'C';
+}
+function rollCard(){
+  const r = rollRarity();
+  const pool = CARDS.filter(c=>c.r===r);
+  return {id: pick(pool.length?pool:CARDS).id, lvl:1};
+}
+
+/* ============================ PERSISTENZ ============================= */
+const SAVE_KEY = 'squadrush.save.v1';
+const DEFAULT_SAVE = ()=>({level:1, best:1, accLvl:1, xp:0, cards:{}, equipped:[]});
+let save = DEFAULT_SAVE();
+
+function loadSave(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(raw){
+      const o = JSON.parse(raw);
+      save = Object.assign(DEFAULT_SAVE(), o);
+      save.cards = o.cards||{};
+      save.equipped = (o.equipped||[]).filter(e=>CARD_BY_ID[e.id]).slice(0,CFG.MAX_EQUIPPED);
+    }
+  }catch(err){ save = DEFAULT_SAVE(); }
+}
+function writeSave(){
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }catch(err){}
+}
+function xpNeeded(n){ return Math.round(CFG.XP_PER_LEVEL * Math.pow(CFG.XP_LEVEL_GROWTH, n-1)); }
+
+function addCard(id, lvl){
+  lvl = lvl||1;
+  if(!save.cards[id]) save.cards[id] = {};
+  save.cards[id][lvl] = (save.cards[id][lvl]||0) + 1;
+}
+function countCard(id, lvl){ return (save.cards[id] && save.cards[id][lvl]) || 0; }
+function equippedCount(id, lvl){ return save.equipped.filter(e=>e.id===id && e.lvl===lvl).length; }
+function freeCount(id, lvl){ return countCard(id,lvl) - equippedCount(id,lvl); }
+function mergeCard(id, lvl){
+  if(lvl>=MAX_CARD_LVL || freeCount(id,lvl)<3) return false;
+  save.cards[id][lvl] -= 3;
+  addCard(id, lvl+1);
+  writeSave(); return true;
+}
+/** XP gutschreiben; gibt die Anzahl neuer Account-Level (= Kartenpacks) zurück. */
+function grantXp(amount){
+  save.xp += amount; let ups = 0;
+  while(save.xp >= xpNeeded(save.accLvl)){ save.xp -= xpNeeded(save.accLvl); save.accLvl++; ups++; }
+  return ups;
+}
+
+/* ====================== AKTIVE KARTEN-EFFEKTE ======================== */
+function buildEffects(){
+  const e = {
+    startSoldiers: CFG.START_SOLDIERS, soldierHp: CFG.SOLDIER_HP, moveMult:1,
+    dmgMult:1, rateMult:1, pierce:0, shotgun:false, explode:0,
+    gateMult:1, barrierMult:1, magnet:1
+  };
+  for(const it of save.equipped){
+    const c = CARD_BY_ID[it.id]; if(c) c.ap(e, it.lvl);
+  }
+  return e;
+}
+
+/* ============================ GAME STATE ============================= */
+const G = {
+  state:'menu',          // menu | play | result | dead
+  level:1, dist:0, levelLen:0, bossLevel:false,
+  px:W/2, tx:W/2, camX:0,
+  count:0,
+  sol:[],                    // Renderpositionen der Soldaten
+  eff:null, fireT:0, buffT:0,
+  bullets:[], enemies:[], gates:[], barriers:[], bossShots:[],
+  parts:[], nums:[], boss:null,
+  shake:0, hitstop:0, popT:0, flash:0,
+  kills:0, broken:0, xpRun:0, time:0, over:false, drainAcc:0
+};
+const keys = {};
+
+/* ---------------------------- LEVELBAU ------------------------------ */
+function enemyTypeFor(level){
+  const pool = ['runner','runner'];
+  if(level>=2) pool.push('tank');
+  if(level>=3) pool.push('splitter','runner');
+  if(level>=5) pool.push('tank','splitter');
+  return pick(pool);
+}
+function makeEnemy(type, x, d, level){
+  const hp = CFG.ENEMY_HP[type] * (1 + CFG.ENEMY_HP_PER_LVL*(level-1));
+  return {type, x, ox:x, d, hp, hpMax:hp, sp:CFG.ENEMY_SPEED[type],
+          r:type==='tank'?21:type==='shard'?10:15,
+          wob:Math.random()*6.28, dead:false};
+}
+function genLevel(level){
+  G.level = level;
+  G.bossLevel = (level % CFG.BOSS_EVERY === 0);
+  G.levelLen = CFG.LEVEL_LENGTH + CFG.LEVEL_LENGTH_LVL*(level-1);
+  G.enemies = []; G.gates = []; G.barriers = []; G.bullets = [];
+  G.parts = []; G.nums = []; G.bossShots = []; G.boss = null;
+
+  const barrierHp = CFG.BARRIER_HP + CFG.BARRIER_HP_LVL*(level-1);
+  // Startreihe: jeder kommt mit ein paar Soldaten aus dem Gate
+  G.gates.push(makeGate(LANE[0], 400, 'add', 4, false));
+  G.gates.push(makeGate(LANE[1], 400, 'add', 3, false));
+  G.gates.push(makeGate(LANE[2], 400, 'add', 2, false));
+  let i = 0;
+  for(let d = 1000; d < G.levelLen - 380; d += CFG.SEGMENT, i++){
+    // --- Spur Mitte: Gegnerwelle (die erste Welle ist bewusst klein) ---
+    const n = i===0 ? 1 + Math.floor(level/2)
+                    : 2 + Math.floor(level/2) + ri(0,2);
+    for(let k=0;k<n;k++){
+      const t = enemyTypeFor(level);
+      G.enemies.push(makeEnemy(t, LANE[1] + rnd(-64,64), d + k*66 + rnd(-20,20), level));
+    }
+    // --- Spur A: sicheres Gate ---
+    const roll = Math.random();
+    let g;
+    if(roll < 0.55)      g = {op:'add', v: CFG.GATE_ADD_S + Math.floor(level/3)};
+    else if(roll < 0.83) g = {op:'add', v: CFG.GATE_ADD_M + (level-1)};
+    else                 g = {op:'mul', v: CFG.GATE_MUL_S};
+    G.gates.push(makeGate(LANE[0], d + 250, g.op, g.v, false));
+
+    // --- Spur B: Risiko (Barriere + starkes Gate) ---
+    if(i % 2 === 1 || level >= 3){
+      G.barriers.push({x:LANE[2], d:d + 150, w:W*0.30, h:34,
+                       hp:barrierHp, hpMax:barrierHp, dead:false, hit:0});
+      const rr = Math.random();
+      let b;
+      if(rr < 0.38)      b = {op:'mul', v:CFG.GATE_MUL_L};
+      else if(rr < 0.72) b = {op:'add', v:CFG.GATE_ADD_L + (level-1)*3};
+      else               b = {op:'wpn', v:CFG.WEAPON_BUFF_TIME};
+      G.gates.push(makeGate(LANE[2], d + 340, b.op, b.v, true));
+    }
+    // --- gelegentliche Streuner auf den Seitenspuren ---
+    if(level>=2 && Math.random()<0.45)
+      G.enemies.push(makeEnemy('runner', LANE[Math.random()<0.5?0:2]+rnd(-40,40), d+430, level));
+  }
+}
+function makeGate(x, d, op, v, risky){
+  return {x, d, w:W*0.30, h:56, op, v, risky, used:false, pop:0};
+}
+function gateLabel(g){
+  if(g.op==='add') return '+'+applyGateValue(g).toFixed(0);
+  if(g.op==='mul') return '×'+applyGateValue(g).toFixed(1).replace('.0','');
+  return '⚡ '+Math.round(g.v)+'s';
+}
+function applyGateValue(g){
+  const m = G.eff ? G.eff.gateMult : 1;
+  if(g.op==='add') return Math.max(1, Math.round(g.v*m));
+  if(g.op==='mul') return 1 + (g.v-1)*m;
+  return g.v;
+}
+
+/* -------------------------- SQUAD HANDLING -------------------------- */
+function slotPos(i){                       // Phyllotaxis-Formation
+  const a = i*2.39996, r = CFG.SOLDIER_SPACING*Math.sqrt(i);
+  return {x:Math.cos(a)*r, y:Math.sin(a)*r*0.72};
+}
+function squadRadius(){
+  const v = Math.min(G.count, CFG.MAX_VISIBLE);
+  return CFG.SOLDIER_SPACING*Math.sqrt(Math.max(v,1))*0.9 + 14;
+}
+function setCount(n, popIt){
+  const old = G.count;
+  G.count = clamp(Math.floor(n), 0, CFG.MAX_SOLDIERS);
+  if(G.count > old){
+    if(popIt) G.popT = 0.35;
+    for(let i=old;i<Math.min(G.count,CFG.MAX_VISIBLE);i++){
+      const s = slotPos(i);
+      G.sol[i] = {x:G.px+s.x+rnd(-30,30), y:PLAY_Y+s.y-40};
+    }
+  }
+  if(G.count < old) G.sol.length = Math.min(G.count, CFG.MAX_VISIBLE);
+  if(G.count<=0 && !G.over && G.state==='play') loseRun();
+}
+function drainSquad(perSec, dt){
+  G.drainAcc += perSec*dt;
+  if(G.drainAcc < 1) return;
+  const kill = Math.floor(G.drainAcc);
+  G.drainAcc -= kill;
+  setCount(G.count - kill, false);
+  G.shake = Math.max(G.shake, CFG.SHAKE_HIT);
+  G.flash = Math.max(G.flash, 0.12);
+  spark(G.px+rnd(-18,18), PLAY_Y+rnd(-14,14), '#ff5a5a', 3);
+}
+function hurtSquad(amount){                 // amount = "Kontakt-Kosten"
+  const perSoldier = Math.max(1, G.eff.soldierHp);
+  const kill = Math.max(1, Math.round(amount / perSoldier));
+  setCount(G.count - kill, false);
+  G.shake = Math.max(G.shake, CFG.SHAKE_HIT+2);
+  G.flash = 0.18;
+  for(let i=0;i<6;i++) spark(G.px+rnd(-20,20), PLAY_Y+rnd(-16,16), '#ff5a5a');
+}
+
+/* --------------------------- START / ENDE --------------------------- */
+function startLevel(level){
+  G.eff = buildEffects();
+  genLevel(level);
+  G.dist=0; G.px=W/2; G.tx=W/2; G.camX=0; G.fireT=0; G.buffT=0;
+  G.kills=0; G.broken=0; G.xpRun=0; G.time=0; G.over=false;
+  G.shake=0; G.hitstop=0; G.popT=0; G.flash=0;
+  G.sol.length=0; G.count=0; G.drainAcc=0;
+  setCount(G.eff.startSoldiers, false);
+  G.state='play';
+  showScreen(null);
+}
+function loseRun(){
+  if(G.over) return;
+  G.over = true; G.state='dead'; G.shake = 14;
+  save.level = G.level; writeSave();
+  setTimeout(showDead, 700);
+}
+function winRun(){
+  if(G.over) return;
+  G.over = true; G.state='result';
+  G.xpRun += CFG.XP_LEVEL_CLEAR + Math.min(CFG.XP_SQUAD_CAP, Math.round(G.count*CFG.XP_SQUAD_BONUS));
+  save.level = G.level + 1;
+  save.best = Math.max(save.best||1, save.level);
+  const ups = grantXp(G.xpRun);
+  const pack = [];
+  for(let i=0;i<ups;i++) for(let k=0;k<3;k++){ const c = rollCard(); addCard(c.id, c.lvl); pack.push(c); }
+  writeSave();
+  setTimeout(()=>showResult(pack, ups), 500);
+}
+
+/* ============================== INPUT =============================== */
+function toLogicalX(clientX){ return (clientX - cv.getBoundingClientRect().left)/view.s; }
+let dragId=null, dragX=0, dragTx=0;
+cv.addEventListener('pointerdown', e=>{
+  if(G.state!=='play') return;
+  dragId=e.pointerId; dragX=toLogicalX(e.clientX); dragTx=G.tx;
+  cv.setPointerCapture(e.pointerId); e.preventDefault();
+});
+cv.addEventListener('pointermove', e=>{
+  if(dragId!==e.pointerId || G.state!=='play') return;
+  G.tx = clamp(dragTx + (toLogicalX(e.clientX)-dragX)*1.15, 26, W-26);
+});
+const endDrag = e=>{ if(dragId===e.pointerId) dragId=null; };
+cv.addEventListener('pointerup', endDrag);
+cv.addEventListener('pointercancel', endDrag);
+window.addEventListener('keydown', e=>{
+  keys[e.key]=true;
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key)) e.preventDefault();
+});
+window.addEventListener('keyup', e=>{ keys[e.key]=false; });
+
+/* ============================== EFFEKTE ============================== */
+function spark(x,y,col,n){
+  n = n||1;
+  for(let i=0;i<n;i++)
+    G.parts.push({x,y,vx:rnd(-140,140),vy:rnd(-190,60),life:rnd(.25,.6),max:.6,
+                  col, s:rnd(2,4.5), g:520});
+}
+function burst(x,y,col,n,pw){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*6.283, sp=rnd(60,pw||260);
+    G.parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-40,life:rnd(.3,.8),max:.8,
+                  col, s:rnd(2,5), g:460});
+  }
+}
+function addNum(x,y,v,col,big){
+  G.nums.push({x,y,v:Math.round(v),life:.75,col:col||'#ffe58a',big:!!big});
+}
+
+/* ============================== UPDATE =============================== */
+function sy(d){ return PLAY_Y - (d - G.dist); }
+
+function update(dt){
+  G.time += dt;
+  if(G.hitstop>0){ G.hitstop -= dt; dt = 0; }
+  const eff = G.eff;
+
+  /* ---- Steuerung ---- */
+  let dir = 0;
+  if(keys.ArrowLeft||keys.a||keys.A) dir--;
+  if(keys.ArrowRight||keys.d||keys.D) dir++;
+  if(dir) G.tx = clamp(G.tx + dir*CFG.MOVE_SPEED*eff.moveMult*dt, 26, W-26);
+  G.px = lerp(G.px, G.tx, 1-Math.exp(-(1/CFG.MOVE_LERP)*2.4*dt));
+  G.camX = lerp(G.camX, (G.px-W/2)*CFG.CAM_PARALLAX, 1-Math.exp(-8*dt));
+
+  /* ---- Vorwärtslauf (beim Bosskampf angehalten) ---- */
+  const bossPhaseActive = G.bossLevel && G.dist >= G.levelLen;
+  if(!bossPhaseActive && !G.over) G.dist += CFG.RUN_SPEED*dt;
+
+  if(G.buffT>0) G.buffT -= dt;
+  if(G.popT>0)  G.popT  -= dt;
+  if(G.flash>0) G.flash -= dt;
+  if(G.shake>0) G.shake = Math.max(0, G.shake - dt*26);
+
+  /* ---- Boss betreten ---- */
+  if(bossPhaseActive && !G.boss && !G.over) spawnBoss();
+  /* ---- Level ohne Boss beendet ---- */
+  if(!G.bossLevel && G.dist >= G.levelLen && !G.over) winRun();
+
+  updateSoldiers(dt);
+  updateShooting(dt);
+  updateBullets(dt);
+  updateEnemies(dt);
+  updateBarriers(dt);
+  updateGates();
+  if(G.boss) updateBoss(dt);
+  updateBossShots(dt);
+
+  /* ---- Partikel / Zahlen ---- */
+  for(let i=G.parts.length-1;i>=0;i--){
+    const p=G.parts[i]; p.life-=dt;
+    if(p.life<=0){ G.parts.splice(i,1); continue; }
+    p.vy += p.g*dt; p.x += p.vx*dt; p.y += p.vy*dt;
+  }
+  for(let i=G.nums.length-1;i>=0;i--){
+    const n=G.nums[i]; n.life-=dt; n.y -= 46*dt;
+    if(n.life<=0) G.nums.splice(i,1);
+  }
+}
+
+function updateSoldiers(dt){
+  const vis = Math.min(G.count, CFG.MAX_VISIBLE);
+  if(G.sol.length > vis) G.sol.length = vis;
+  for(let i=0;i<vis;i++){
+    const s = slotPos(i);
+    if(!G.sol[i]) G.sol[i] = {x:G.px+s.x, y:PLAY_Y+s.y};
+    const t = 1-Math.exp(-(12 - Math.min(i,40)*0.14)*dt);
+    G.sol[i].x = lerp(G.sol[i].x, G.px + s.x, t);
+    G.sol[i].y = lerp(G.sol[i].y, PLAY_Y + s.y + Math.sin(G.time*11 + i)*1.6, t);
+  }
+}
+
+function updateShooting(dt){
+  if(G.count<=0) return;
+  const eff = G.eff, buff = G.buffT>0;
+  const rate = CFG.FIRE_RATE * eff.rateMult * (buff?CFG.WEAPON_BUFF_RATE:1);
+  G.fireT -= dt;
+  if(G.fireT>0) return;
+  G.fireT += 1/rate;
+  if(G.fireT<0) G.fireT = 1/rate;
+
+  const total = G.count * CFG.BASE_DAMAGE * eff.dmgMult * (buff?CFG.WEAPON_BUFF_DMG:1);
+  const streams = Math.max(1, Math.min(G.count, CFG.MAX_STREAMS));
+  const per = eff.shotgun ? 3 : 1;
+  const dmg = total/(streams*per);
+  for(let s=0;s<streams;s++){
+    const src = G.sol[s] || {x:G.px, y:PLAY_Y};
+    for(let k=0;k<per;k++){
+      const spread = eff.shotgun ? (k-1)*170 : 0;
+      G.bullets.push({x:src.x, d:G.dist + (PLAY_Y - src.y) + 8, vx:spread,
+                      dmg, pierce:eff.pierce, hit:0, seen:null});
+    }
+  }
+}
+
+function explodeAt(x, d, dmg){
+  const r = CFG.EXPLOSION_RADIUS, y = sy(d);
+  burst(x, y, '#ffa53a', 10, 200);
+  for(const e of G.enemies){
+    if(e.dead) continue;
+    const dx=e.x-x, dy=sy(e.d)-y;
+    if(dx*dx+dy*dy < r*r) damageEnemy(e, dmg, false);
+  }
+  for(const b of G.barriers){
+    if(b.dead) continue;
+    if(Math.abs(sy(b.d)-y)<r && Math.abs(b.x-x)<b.w/2+r) damageBarrier(b, dmg);
+  }
+  if(G.boss && !G.boss.dead && Math.abs(G.boss.y-y)<r+40 && Math.abs(G.boss.x-x)<70)
+    damageBoss(dmg);
+}
+
+function updateBullets(dt){
+  const eff = G.eff;
+  for(let i=G.bullets.length-1;i>=0;i--){
+    const b = G.bullets[i];
+    b.d += CFG.BULLET_SPEED*dt; b.x += b.vx*dt;
+    const by = sy(b.d);
+    if(by < -30 || b.x<-30 || b.x>W+30){ G.bullets.splice(i,1); continue; }
+    let gone = false;
+
+    // Boss
+    if(G.boss && !G.boss.dead && by < G.boss.y+44 && by > G.boss.y-46 &&
+       Math.abs(b.x-G.boss.x) < 62){
+      damageBoss(b.dmg);
+      if(eff.explode>0) explodeAt(b.x, b.d, b.dmg*eff.explode);
+      G.bullets.splice(i,1); continue;
+    }
+    // Gegner
+    for(const e of G.enemies){
+      if(e.dead) continue;
+      const ey = sy(e.d);
+      if(Math.abs(ey-by) < e.r+14 && Math.abs(e.x-b.x) < e.r+6){
+        damageEnemy(e, b.dmg, true);
+        if(eff.explode>0) explodeAt(b.x, b.d, b.dmg*eff.explode);
+        b.hit++;
+        if(b.hit > b.pierce){ gone=true; }
+        break;
+      }
+    }
+    if(gone){ G.bullets.splice(i,1); continue; }
+    // Barrieren
+    for(const bar of G.barriers){
+      if(bar.dead) continue;
+      const yy = sy(bar.d);
+      if(Math.abs(yy-by) < bar.h/2+14 && Math.abs(bar.x-b.x) < bar.w/2){
+        damageBarrier(bar, b.dmg*eff.barrierMult);
+        if(eff.explode>0) explodeAt(b.x, b.d, b.dmg*eff.explode);
+        gone = true; break;
+      }
+    }
+    if(gone) G.bullets.splice(i,1);
+  }
+}
+
+function damageEnemy(e, dmg, showNum){
+  e.hp -= dmg;
+  if(showNum && Math.random()<0.55) addNum(e.x+rnd(-6,6), sy(e.d)-8, dmg);
+  spark(e.x, sy(e.d), '#ffd166');
+  if(e.hp<=0 && !e.dead){
+    e.dead = true;
+    G.kills++; G.xpRun += CFG.XP_PER_KILL;
+    burst(e.x, sy(e.d), e.type==='tank'?'#7fd1ff':'#ff7b7b', e.type==='tank'?16:9);
+    if(e.type==='splitter'){
+      for(let k=0;k<2;k++)
+        G.enemies.push(makeEnemy('shard', e.x + (k?18:-18), e.d, G.level));
+    }
+  }
+}
+function damageBarrier(b, dmg){
+  b.hp -= dmg; b.hit = 0.12;
+  if(Math.random()<0.4) addNum(b.x+rnd(-30,30), sy(b.d), dmg, '#9fd8ff');
+  spark(b.x+rnd(-b.w/2,b.w/2), sy(b.d), '#cfd8f5');
+  if(b.hp<=0 && !b.dead){
+    b.dead = true; G.broken++; G.xpRun += CFG.XP_PER_BARRIER;
+    G.hitstop = CFG.HITSTOP_BREAK; G.shake = Math.max(G.shake, 8);
+    burst(b.x, sy(b.d), '#e8eefc', 26, 320);
+    addNum(b.x, sy(b.d)-20, CFG.XP_PER_BARRIER, '#7cf0ff', true);
+  }
+}
+
+function updateEnemies(dt){
+  const sr = squadRadius();
+  for(let i=G.enemies.length-1;i>=0;i--){
+    const e = G.enemies[i];
+    if(e.dead){ G.enemies.splice(i,1); continue; }
+    e.d -= e.sp*dt;
+    const ey = sy(e.d);
+    if(ey > PLAY_Y - 320 && e.type!=='tank'){
+      // leichtes Nachziehen, aber die Gegner verlassen ihre Spur nicht
+      const goal = clamp(G.px, e.ox-CFG.ENEMY_TRACK, e.ox+CFG.ENEMY_TRACK);
+      e.x = lerp(e.x, goal, 1-Math.exp(-1.2*dt));
+    }
+    e.x += Math.sin(G.time*4+e.wob)*14*dt;
+    if(ey > H+70){ G.enemies.splice(i,1); continue; }
+    const dx = e.x-G.px, dy = ey-PLAY_Y, rr = e.r + sr*0.78;
+    if(dx*dx+dy*dy < rr*rr && !G.over){
+      hurtSquad(CFG.ENEMY_COST[e.type]);
+      burst(e.x, ey, '#ff5a5a', 10);
+      G.enemies.splice(i,1);
+    }
+  }
+}
+
+function updateBarriers(dt){
+  const sr = squadRadius();
+  for(const b of G.barriers){
+    if(b.dead) continue;
+    if(b.hit>0) b.hit -= dt;
+    const y = sy(b.d);
+    if(y > PLAY_Y - b.h/2 - sr*0.6 && y < PLAY_Y + b.h/2 + sr*0.6 &&
+       Math.abs(b.x-G.px) < b.w/2 + sr*0.5 && !G.over){
+      // Anprall: Soldaten sterben laufend, die Barriere nimmt dabei etwas Schaden
+      drainSquad(CFG.BARRIER_DRAIN/Math.max(1,G.eff.soldierHp), dt);
+      damageBarrier(b, CFG.BARRIER_CONTACT*dt*G.eff.barrierMult);
+      G.shake = Math.max(G.shake, 5);
+    }
+  }
+}
+
+function updateGates(){
+  const sr = squadRadius(), eff = G.eff;
+  for(const g of G.gates){
+    if(g.used) continue;
+    const y = sy(g.d);
+    if(y >= PLAY_Y){
+      g.used = true;
+      if(Math.abs(g.x - G.px) < g.w/2 + sr*0.45*eff.magnet){
+        const v = applyGateValue(g);
+        if(g.op==='add'){ setCount(G.count + v, true); addNum(G.px, PLAY_Y-46, v, '#7dff9b', true); }
+        else if(g.op==='mul'){ setCount(Math.round(G.count*v), true); G.nums.push({x:G.px,y:PLAY_Y-46,v:'×'+v.toFixed(1).replace('.0',''),life:.9,col:'#7dff9b',big:true}); }
+        else { G.buffT = g.v; G.nums.push({x:G.px,y:PLAY_Y-46,v:'WAFFE!',life:.9,col:'#ffd166',big:true}); }
+        burst(G.px, PLAY_Y-20, g.risky?'#c58cff':'#7dff9b', 16, 260);
+        G.shake = Math.max(G.shake, 4);
+      }
+    }
+  }
+}
+
+/* =============================== BOSS ================================ */
+function spawnBoss(){
+  const hp = CFG.BOSS_HP * (1 + CFG.BOSS_HP_FACTOR*(G.level-1));
+  G.boss = {x:W/2, y:-150, hp, hpMax:hp, phase:1, t:0, a1:1.4, a2:3.2,
+            flash:0, dead:false, deadT:0};
+  G.shake = 10;
+}
+function damageBoss(dmg){
+  const b = G.boss; if(!b || b.dead) return;
+  b.hp -= dmg; b.flash = 0.08;
+  G.shake = Math.max(G.shake, CFG.SHAKE_BOSS*0.35);
+  if(Math.random()<0.5) addNum(b.x+rnd(-30,30), b.y+rnd(-10,20), dmg, '#ffd166');
+  spark(b.x+rnd(-40,40), b.y+30, '#ffd166', 2);
+  const p = b.hp/b.hpMax;
+  const np = p>0.66?1:p>0.33?2:3;
+  if(np!==b.phase){ b.phase=np; G.shake = CFG.SHAKE_BOSS; burst(b.x,b.y,'#ff9c3a',24,340); }
+  if(b.hp<=0){
+    b.hp=0; b.dead=true; b.deadT=1.1;
+    G.xpRun += CFG.XP_PER_BOSS; G.shake = 16; G.hitstop = 0.14;
+    burst(b.x,b.y,'#ffb020',60,420);
+  }
+}
+function updateBoss(dt){
+  const b = G.boss;
+  b.t += dt;
+  if(b.flash>0) b.flash -= dt;
+  b.y = lerp(b.y, H*0.20, 1-Math.exp(-3*dt));
+  if(b.dead){
+    b.deadT -= dt;
+    if(b.deadT<=0 && !G.over) winRun();
+    if(Math.random()<0.4) burst(b.x+rnd(-50,50), b.y+rnd(-30,30), '#ffb020', 4, 200);
+    return;
+  }
+  const ph = b.phase;
+  b.x = W/2 + Math.sin(b.t*(0.6+0.25*ph))*W*CFG.BOSS_SWING;
+
+  // Angriff 1: Flächenschuss
+  b.a1 -= dt;
+  if(b.a1<=0){
+    b.a1 = [2.4,1.7,1.05][ph-1];
+    const n = [3,5,7][ph-1];
+    for(let i=0;i<n;i++){
+      const a = -0.62 + (i/(n-1||1))*1.24;
+      const ang = Math.atan2(PLAY_Y-b.y, G.px-b.x) + a*0.55;
+      const sp = 330 + ph*38;
+      G.bossShots.push({x:b.x, y:b.y+44, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp, r:11});
+    }
+    G.shake = Math.max(G.shake, 4);
+  }
+  // Angriff 2: Minions
+  b.a2 -= dt;
+  if(b.a2<=0){
+    b.a2 = [5.5,4.2,3.0][ph-1];
+    const n = [2,3,4][ph-1];
+    for(let i=0;i<n;i++){
+      const t = ph>=2 && Math.random()<0.4 ? 'tank' : 'runner';
+      const x = b.x + rnd(-90,90);
+      G.enemies.push(makeEnemy(t, clamp(x,40,W-40), G.dist + (PLAY_Y - (b.y+60)), G.level));
+    }
+  }
+}
+function updateBossShots(dt){
+  const sr = squadRadius();
+  for(let i=G.bossShots.length-1;i>=0;i--){
+    const s = G.bossShots[i];
+    s.x += s.vx*dt; s.y += s.vy*dt;
+    if(s.y>H+40 || s.x<-40 || s.x>W+40){ G.bossShots.splice(i,1); continue; }
+    const dx=s.x-G.px, dy=s.y-PLAY_Y, rr=s.r+sr*0.7;
+    if(dx*dx+dy*dy<rr*rr && !G.over){
+      hurtSquad(CFG.BOSS_SHOT_COST);
+      burst(s.x,s.y,'#ff7b3a',12);
+      G.bossShots.splice(i,1);
+    }
+  }
+}
+
+/* ============================== RENDER =============================== */
+function rr(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+function bar(x,y,w,h,p,c1,c2){
+  ctx.fillStyle='rgba(0,0,0,.55)'; rr(x,y,w,h,h/2); ctx.fill();
+  const g=ctx.createLinearGradient(x,0,x+w,0); g.addColorStop(0,c1); g.addColorStop(1,c2||c1);
+  ctx.fillStyle=g; rr(x+2,y+2,Math.max(0,(w-4)*clamp(p,0,1)),h-4,(h-4)/2); ctx.fill();
+}
+
+function drawRoad(){
+  ctx.fillStyle='#10151f'; ctx.fillRect(-60,0,W+120,H);
+  // Spurflächen
+  const lw = W*0.30;
+  const tint = ['rgba(60,200,120,.055)','rgba(120,140,190,.05)','rgba(170,80,230,.07)'];
+  for(let i=0;i<3;i++){
+    ctx.fillStyle = tint[i];
+    ctx.fillRect(LANE[i]-lw/2, 0, lw, H);
+  }
+  // Mittelstreifen
+  ctx.strokeStyle='rgba(255,255,255,.09)'; ctx.lineWidth=3;
+  const off = (G.dist % 70);
+  for(const x of [W*0.34, W*0.66]){
+    ctx.beginPath();
+    for(let y=-70+off; y<H; y+=70){ ctx.moveTo(x,y); ctx.lineTo(x,y+34); }
+    ctx.stroke();
+  }
+  // Randbegrenzung
+  ctx.fillStyle='#070a11'; ctx.fillRect(-60,0,62,H); ctx.fillRect(W-2,0,62,H);
+  ctx.strokeStyle='rgba(120,150,255,.25)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(2,0); ctx.lineTo(2,H); ctx.moveTo(W-2,0); ctx.lineTo(W-2,H); ctx.stroke();
+  // Ziellinie
+  const fy = sy(G.levelLen);
+  if(fy > -40 && fy < H+40 && !(G.boss && !G.boss.dead)){
+    ctx.fillStyle='#e8eefc';
+    for(let i=0;i<14;i++){ if(i%2===0) ctx.fillRect(i*W/14, fy-9, W/14, 18); }
+    ctx.fillStyle='rgba(0,0,0,.35)';
+    for(let i=0;i<14;i++){ if(i%2===1) ctx.fillRect(i*W/14, fy-9, W/14, 18); }
+  }
+}
+
+function drawGate(g){
+  const y = sy(g.d); if(y<-90||y>H+40) return;
+  const c = g.risky ? '#b45cff' : '#3ddc84';
+  const c2= g.risky ? 'rgba(180,92,255,.20)' : 'rgba(61,220,132,.18)';
+  const x = g.x-g.w/2;
+  ctx.fillStyle=c2; rr(x, y-g.h/2, g.w, g.h, 10); ctx.fill();
+  ctx.strokeStyle=c; ctx.lineWidth=3; rr(x, y-g.h/2, g.w, g.h, 10); ctx.stroke();
+  ctx.fillStyle=c; ctx.fillRect(x-4, y-g.h/2-4, 8, g.h+8); ctx.fillRect(x+g.w-4, y-g.h/2-4, 8, g.h+8);
+  ctx.fillStyle='#fff'; ctx.font='800 26px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(gateLabel(g), g.x, y+1);
+  if(g.op==='wpn'){ ctx.font='700 10px system-ui'; ctx.fillStyle=c; ctx.fillText('WAFFEN-UPGRADE', g.x, y+21); }
+}
+
+function drawBarrier(b){
+  if(b.dead) return;
+  const y = sy(b.d); if(y<-60||y>H+40) return;
+  const x = b.x-b.w/2;
+  ctx.fillStyle = b.hit>0 ? '#ffffff' : '#39445e';
+  rr(x, y-b.h/2, b.w, b.h, 6); ctx.fill();
+  ctx.save(); ctx.beginPath(); rr(x, y-b.h/2, b.w, b.h, 6); ctx.clip();
+  ctx.strokeStyle='rgba(255,190,60,.55)'; ctx.lineWidth=9;
+  for(let i=-b.h; i<b.w+b.h; i+=26){ ctx.beginPath(); ctx.moveTo(x+i,y+b.h/2); ctx.lineTo(x+i+b.h,y-b.h/2); ctx.stroke(); }
+  ctx.restore();
+  ctx.strokeStyle='#0d1119'; ctx.lineWidth=3; rr(x, y-b.h/2, b.w, b.h, 6); ctx.stroke();
+  bar(x, y-b.h/2-19, b.w, 14, b.hp/b.hpMax, '#ff5f6d', '#ffc371');
+  ctx.fillStyle='#fff'; ctx.font='800 11px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.lineWidth=3; ctx.strokeStyle='rgba(0,0,0,.65)';
+  ctx.strokeText(Math.max(0,Math.ceil(b.hp))+' HP', b.x, y-b.h/2-11.5);
+  ctx.fillText(Math.max(0,Math.ceil(b.hp))+' HP', b.x, y-b.h/2-11.5);
+}
+
+function drawEnemy(e){
+  const y = sy(e.d); if(y<-50||y>H+50) return;
+  ctx.save(); ctx.translate(e.x,y);
+  if(e.type==='tank'){
+    ctx.fillStyle='#2b4a7a'; rr(-e.r,-e.r,e.r*2,e.r*2,5); ctx.fill();
+    ctx.fillStyle='#4d7fc4'; rr(-e.r+5,-e.r+5,e.r*2-10,e.r*2-10,3); ctx.fill();
+    ctx.fillStyle='#0e1622'; ctx.fillRect(-6,e.r-4,12,7);
+  } else if(e.type==='splitter'){
+    ctx.fillStyle='#8a3fd1'; ctx.beginPath();
+    for(let i=0;i<6;i++){ const a=i/6*6.283+0.5; ctx[i?'lineTo':'moveTo'](Math.cos(a)*e.r,Math.sin(a)*e.r); }
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#d9b3ff'; ctx.beginPath(); ctx.arc(0,0,e.r*0.38,0,6.283); ctx.fill();
+  } else if(e.type==='shard'){
+    ctx.fillStyle='#b06fe8'; ctx.beginPath(); ctx.arc(0,0,e.r,0,6.283); ctx.fill();
+    ctx.fillStyle='#20112e'; ctx.fillRect(-4,2,8,3);
+  } else {
+    ctx.fillStyle='#d8394b'; ctx.beginPath();
+    ctx.moveTo(0,e.r); ctx.lineTo(e.r,-e.r*0.7); ctx.lineTo(-e.r,-e.r*0.7); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#ff8a95'; ctx.beginPath(); ctx.arc(0,-e.r*0.25,e.r*0.32,0,6.283); ctx.fill();
+  }
+  ctx.restore();
+  if(e.hp < e.hpMax){
+    const w=e.r*2.2;
+    ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(e.x-w/2, y-e.r-9, w, 4);
+    ctx.fillStyle='#ff6b6b'; ctx.fillRect(e.x-w/2, y-e.r-9, w*clamp(e.hp/e.hpMax,0,1), 4);
+  }
+}
+
+function drawSoldier(x,y,buff){
+  ctx.fillStyle = buff ? '#ffb020' : '#3ddc84';
+  rr(x-5.5, y-6, 11, 15, 3.5); ctx.fill();
+  ctx.fillStyle = buff ? '#ffe1a8' : '#d7ffe8';
+  ctx.beginPath(); ctx.arc(x, y-9, 4.6, 0, 6.283); ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,.35)';
+  ctx.fillRect(x-5.5, y-11.5, 11, 3);
+  ctx.fillStyle = buff ? '#7a4b00' : '#155f38';
+  ctx.fillRect(x+4, y-6, 3.5, 11);
+}
+
+function drawSquad(){
+  const buff = G.buffT>0;
+  // Schatten
+  ctx.fillStyle='rgba(0,0,0,.28)';
+  for(const s of G.sol){ ctx.beginPath(); ctx.ellipse(s.x, s.y+8, 7, 3.2, 0, 0, 6.283); ctx.fill(); }
+  for(const s of G.sol) drawSoldier(s.x, s.y, buff);
+  // Zähler
+  const pop = 1 + (G.popT>0 ? G.popT*1.5 : 0);
+  ctx.save(); ctx.translate(G.px, PLAY_Y - squadRadius() - 26); ctx.scale(pop,pop);
+  ctx.font='900 30px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.lineWidth=6; ctx.strokeStyle='rgba(0,0,0,.75)';
+  ctx.strokeText(G.count, 0, 0);
+  ctx.fillStyle = buff ? '#ffd166' : '#ffffff';
+  ctx.fillText(G.count, 0, 0);
+  ctx.restore();
+  if(buff){
+    ctx.fillStyle='#ffd166'; ctx.font='800 12px system-ui'; ctx.textAlign='center';
+    ctx.fillText('⚡ '+G.buffT.toFixed(1)+'s', G.px, PLAY_Y - squadRadius() - 48);
+  }
+}
+
+function drawBoss(){
+  const b = G.boss; if(!b) return;
+  ctx.save(); ctx.translate(b.x, b.y);
+  const s = b.dead ? Math.max(0.01, b.deadT) : 1;
+  ctx.scale(s,s);
+  ctx.fillStyle = b.flash>0 ? '#ffffff' : ['#7a2f9e','#a4318a','#c22f4e'][b.phase-1];
+  rr(-62,-44,124,88,16); ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,.35)'; rr(-46,10,92,22,10); ctx.fill();
+  ctx.fillStyle='#ffd166';
+  ctx.beginPath(); ctx.arc(-26,-10,11,0,6.283); ctx.arc(26,-10,11,0,6.283); ctx.fill();
+  ctx.fillStyle='#1a0d20';
+  ctx.beginPath(); ctx.arc(-26,-8,5,0,6.283); ctx.arc(26,-8,5,0,6.283); ctx.fill();
+  ctx.fillStyle=['#c58cff','#ff8ad0','#ff8a8a'][b.phase-1];
+  ctx.fillRect(-70,-52,20,12); ctx.fillRect(50,-52,20,12);
+  ctx.restore();
+}
+
+function drawHUD(){
+  // Kopfzeile
+  ctx.fillStyle='rgba(8,11,18,.72)'; ctx.fillRect(0,0,W,86);
+  ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.fillStyle='#fff'; ctx.font='900 22px system-ui';
+  ctx.fillText('LEVEL '+G.level, 16, 24);
+  if(G.bossLevel){ ctx.fillStyle='#ffb020'; ctx.font='800 12px system-ui'; ctx.fillText('BOSS', 130, 25); }
+
+  ctx.textAlign='right'; ctx.fillStyle='#9aa4c0'; ctx.font='700 12px system-ui';
+  ctx.fillText('SOLDATEN', W-16, 14);
+  ctx.fillStyle='#3ddc84'; ctx.font='900 24px system-ui';
+  ctx.fillText(fmt(G.count), W-16, 33);
+
+  const need = xpNeeded(save.accLvl);
+  bar(16, 48, W-32, 14, save.xp/need, '#3aa0ff', '#7cf0ff');
+  ctx.textAlign='left'; ctx.fillStyle='#cfd8f5'; ctx.font='800 11px system-ui';
+  ctx.fillText('ACC '+save.accLvl, 20, 71);
+  ctx.textAlign='right';
+  ctx.fillText(Math.floor(save.xp)+' / '+need+' XP', W-20, 71);
+
+  // Boss-HP
+  if(G.boss && !G.boss.dead){
+    const b=G.boss;
+    bar(40, 96, W-80, 20, b.hp/b.hpMax, '#ff3b5c', '#ff9c3a');
+    ctx.textAlign='center'; ctx.font='800 12px system-ui';
+    const txt = 'BOSS · PHASE '+b.phase+'  ·  '+Math.ceil(b.hp);
+    ctx.lineWidth=3.5; ctx.strokeStyle='rgba(0,0,0,.7)'; ctx.strokeText(txt, W/2, 106);
+    ctx.fillStyle='#fff'; ctx.fillText(txt, W/2, 106);
+    for(const p of [0.33,0.66]){
+      ctx.fillStyle='rgba(0,0,0,.6)'; ctx.fillRect(40+(W-80)*p, 96, 2, 20);
+    }
+  }
+
+  // Fortschritt
+  const prog = clamp(G.dist/G.levelLen,0,1);
+  bar(60, H-30, W-120, 16, prog, '#7dff9b', '#3ddc84');
+  ctx.textAlign='center'; ctx.font='900 11px system-ui';
+  ctx.lineWidth=3; ctx.strokeStyle='rgba(0,0,0,.7)';
+  ctx.strokeText(Math.round(prog*100)+'%', W/2, H-22);
+  ctx.fillStyle='#eaf6ff'; ctx.fillText(Math.round(prog*100)+'%', W/2, H-22);
+  ctx.fillStyle='#fff'; ctx.font='900 13px system-ui';
+  ctx.fillText('🏁', W-46, H-22);
+  ctx.fillText('🏃', 42, H-22);
+}
+
+function draw(){
+  ctx.fillStyle='#05070c'; ctx.fillRect(0,0,W,H);
+  ctx.save();
+  const sh = G.shake;
+  ctx.translate(-G.camX + (sh?rnd(-sh,sh):0), (sh?rnd(-sh,sh):0));
+  drawRoad();
+  for(const g of G.gates) if(!g.used || sy(g.d)<PLAY_Y+40) drawGate(g);
+  for(const b of G.barriers) drawBarrier(b);
+  for(const e of G.enemies) drawEnemy(e);
+  if(G.boss) drawBoss();
+  // Geschosse
+  ctx.fillStyle = G.buffT>0 ? '#ffd166' : '#ffe58a';
+  for(const b of G.bullets){ const y=sy(b.d); ctx.fillRect(b.x-2.5, y-11, 5, 13); }
+  ctx.fillStyle='#ff7b3a';
+  for(const s of G.bossShots){ ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,6.283); ctx.fill(); }
+  drawSquad();
+  // Partikel
+  for(const p of G.parts){
+    ctx.globalAlpha = clamp(p.life/p.max,0,1);
+    ctx.fillStyle=p.col; ctx.fillRect(p.x-p.s/2, p.y-p.s/2, p.s, p.s);
+  }
+  ctx.globalAlpha=1;
+  // Schadenszahlen
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(const n of G.nums){
+    ctx.globalAlpha = clamp(n.life/0.75,0,1);
+    ctx.font = (n.big?'900 26px ':'800 15px ')+'system-ui';
+    ctx.lineWidth=4; ctx.strokeStyle='rgba(0,0,0,.7)';
+    ctx.strokeText(n.v, n.x, n.y); ctx.fillStyle=n.col; ctx.fillText(n.v, n.x, n.y);
+  }
+  ctx.globalAlpha=1;
+  ctx.restore();
+  drawHUD();
+  if(G.flash>0){
+    ctx.fillStyle='rgba(255,40,60,'+(G.flash*0.9)+')'; ctx.fillRect(0,0,W,H);
+  }
+}
+
+/* ================================ UI ================================= */
+const $ = id=>document.getElementById(id);
+const SCREENS = ['scMeta','scResult','scDead'];
+function showScreen(id){
+  SCREENS.forEach(s=>$(s).classList.toggle('on', s===id));
+}
+function cardEl(id, lvl, opts){
+  const c = CARD_BY_ID[id];
+  const d = document.createElement('div');
+  d.className = 'card '+c.r+(opts.equipped?' eq':'');
+  d.innerHTML = '<span class="lv">'+'★'.repeat(lvl)+'</span>'+
+    (opts.count!=null?'<span class="ct">×'+opts.count+'</span>':'')+
+    '<div class="ic">'+c.ic+'</div><div class="nm">'+c.nm+'</div>'+
+    '<div class="ds">'+c.ds(lvl)+'</div>';
+  if(opts.onClick) d.onclick = opts.onClick;
+  if(opts.merge){
+    const b = document.createElement('button');
+    b.className='merge'; b.textContent='3 → ★'+(lvl+1);
+    b.onclick = ev=>{ ev.stopPropagation(); if(mergeCard(id,lvl)) renderMeta(); };
+    d.appendChild(b);
+  }
+  return d;
+}
+let metaTab = 'Alle';
+function renderMeta(){
+  const need = xpNeeded(save.accLvl);
+  $('pAcc').textContent = 'Account Lv '+save.accLvl;
+  $('pLvl').textContent = 'Nächstes Level: '+save.level+(save.level%CFG.BOSS_EVERY===0?' 👑':'');
+  const eff = buildEffects();
+  $('pSol').textContent = 'Start: '+eff.startSoldiers+' Soldat'+(eff.startSoldiers>1?'en':'');
+  $('xpBar').style.width = (100*save.xp/need)+'%';
+  $('xpTxt').textContent = Math.floor(save.xp)+' / '+need+' XP  ·  Level-Up = 1 Kartenpack';
+  $('metaSub').textContent = save.level%CFG.BOSS_EVERY===0
+      ? 'Achtung: Level '+save.level+' endet mit einem BOSS.'
+      : 'Rüste bis zu '+CFG.MAX_EQUIPPED+' Karten aus und starte Level '+save.level+'.';
+
+  // Ausrüstung
+  const eq = $('eqGrid'); eq.innerHTML='';
+  save.equipped.forEach((it,idx)=>{
+    eq.appendChild(cardEl(it.id, it.lvl, {equipped:true, onClick:()=>{
+      save.equipped.splice(idx,1); writeSave(); renderMeta();
+    }}));
+  });
+  for(let i=save.equipped.length;i<CFG.MAX_EQUIPPED;i++){
+    const d=document.createElement('div'); d.className='card';
+    d.style.opacity=.45; d.innerHTML='<div class="ic">＋</div><div class="nm">leer</div><div class="ds">Karte wählen</div>';
+    eq.appendChild(d);
+  }
+  // Tabs
+  const tabs = ['Alle','Soldaten','Waffen','Utility'];
+  const tb = $('tabs'); tb.innerHTML='';
+  tabs.forEach(t=>{
+    const b=document.createElement('div'); b.className='tab'+(t===metaTab?' on':''); b.textContent=t;
+    b.onclick=()=>{ metaTab=t; renderMeta(); }; tb.appendChild(b);
+  });
+  // Sammlung
+  const col = $('colGrid'); col.innerHTML='';
+  let any = false;
+  for(const c of CARDS){
+    if(metaTab!=='Alle' && c.cat!==metaTab) continue;
+    const owned = save.cards[c.id]||{};
+    for(let l=1;l<=MAX_CARD_LVL;l++){
+      const free = freeCount(c.id,l);
+      if(free<=0) continue;
+      any = true;
+      col.appendChild(cardEl(c.id, l, {
+        count: free,
+        merge: l<MAX_CARD_LVL && free>=3,
+        onClick: ()=>{
+          if(save.equipped.length>=CFG.MAX_EQUIPPED){ flashMsg('Maximal '+CFG.MAX_EQUIPPED+' Karten aktiv'); return; }
+          save.equipped.push({id:c.id, lvl:l}); writeSave(); renderMeta();
+        }
+      }));
+    }
+  }
+  if(!any){
+    const d=document.createElement('div'); d.className='card'; d.style.gridColumn='1/-1'; d.style.opacity=.6;
+    d.innerHTML='<div class="ic">🃏</div><div class="nm">Noch keine Karten</div><div class="ds">Sammle XP und steige im Account-Level auf</div>';
+    col.appendChild(d);
+  }
+}
+let msgT=null;
+function flashMsg(t){
+  const s=$('metaSub'); const old=s.textContent; s.textContent=t; s.style.color='#ffb020';
+  clearTimeout(msgT); msgT=setTimeout(()=>{ s.style.color=''; renderMeta(); }, 1400);
+}
+function showMeta(){ G.state='menu'; renderMeta(); showScreen('scMeta'); }
+
+function showResult(pack, ups){
+  $('resTitle').textContent = G.bossLevel ? 'BOSS BESIEGT' : 'LEVEL GESCHAFFT';
+  $('resLvl').textContent = 'LEVEL '+G.level;
+  $('resKills').textContent = '💀 '+G.kills+' Kills';
+  $('resBar').textContent = '🧨 '+G.broken+' Barrieren';
+  $('resSquad').textContent = '👥 '+G.count+' Soldaten';
+  $('resXp').textContent = '+'+G.xpRun+' XP'+(ups?'  ·  '+ups+'× LEVEL UP!':'');
+  const need = xpNeeded(save.accLvl);
+  $('resXpBar').style.width = (100*save.xp/need)+'%';
+  $('resXpTxt').textContent = 'Account Lv '+save.accLvl+' — '+Math.floor(save.xp)+' / '+need+' XP';
+  const box = $('resPack'); box.innerHTML='';
+  if(pack.length){
+    const h=document.createElement('h2'); h.textContent='Kartenpack'; h.style.alignSelf='flex-start'; box.appendChild(h);
+    const g=document.createElement('div'); g.className='grid';
+    pack.forEach(c=>g.appendChild(cardEl(c.id,c.lvl,{})));
+    box.appendChild(g);
+  }
+  showScreen('scResult');
+}
+function showDead(){
+  $('deadLvl').textContent = 'LEVEL '+G.level;
+  const ups = grantXp(Math.round(G.xpRun*0.5));
+  const pack=[];
+  for(let i=0;i<ups;i++) for(let k=0;k<3;k++){ const c=rollCard(); addCard(c.id,c.lvl); pack.push(c); }
+  writeSave();
+  $('deadXp').textContent = '+'+Math.round(G.xpRun*0.5)+' XP behalten'+(ups?'  ·  '+ups+' Kartenpack!':'');
+  showScreen('scDead');
+}
+
+$('btnPlay').onclick   = ()=>startLevel(save.level);
+$('btnNext').onclick   = ()=>showMeta();
+$('btnRetry').onclick  = ()=>startLevel(save.level);
+$('btnToMeta').onclick = ()=>showMeta();
+$('btnWipe').onclick   = ()=>{
+  if(!confirm('Wirklich den kompletten Fortschritt löschen?')) return;
+  try{ localStorage.removeItem(SAVE_KEY); }catch(err){}
+  save = DEFAULT_SAVE(); writeSave(); renderMeta();
+};
+
+/* ============================== MAINLOOP ============================== */
+let last = 0, acc = 0;
+function frame(ts){
+  requestAnimationFrame(frame);
+  if(!last) last = ts;
+  let dt = (ts-last)/1000; last = ts;
+  if(dt > 0.05) dt = 0.05;               // Tab-Wechsel abfangen
+  if(G.state==='play') update(dt);
+  draw();
+}
+loadSave();
+resize();
+genLevel(save.level);                     // Kulisse für den Meta-Screen
+G.eff = buildEffects();
+setCount(0,false); G.count=0;
+showMeta();
+requestAnimationFrame(frame);
+</script>
